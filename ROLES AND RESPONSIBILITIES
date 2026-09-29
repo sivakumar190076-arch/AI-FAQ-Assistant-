@@ -1,0 +1,98 @@
+import tkinter as tk
+from tkinter import scrolledtext
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+questions = [
+    "What is the college working time?",
+    "How can I apply for admission?",
+    "What courses are available?",
+    "How can I contact the college?",
+    "What is the fee structure?",
+    "Where is the college located?"
+]
+
+answers = [
+    "The college working hours are 9:00 AM to 4:30 PM.",
+    "You can apply through the college admission portal.",
+    "Various undergraduate and postgraduate courses are available.",
+    "You can contact the college through the official office.",
+    "The fee depends on the selected course.",
+    "The college location is available on the official website."
+]
+vectorizer = TfidfVectorizer()
+
+faq_vectors = vectorizer.fit_transform(questions)
+def get_answer(user_question):
+
+    user_vector = vectorizer.transform([user_question])
+
+    similarity = cosine_similarity(
+        user_vector,
+        faq_vectors
+    )
+
+    best_match = similarity.argmax()
+    score = similarity[0][best_match]
+
+    if score < 0.25:
+        return "Sorry, I could not find a suitable answer."
+
+    return answers[best_match]
+def send_message():
+
+    question = entry.get().strip()
+
+    if question == "":
+        return
+
+    chat_box.insert(
+        tk.END,
+        "User: " + question + "\n"
+    )
+
+    response = get_answer(question)
+
+    chat_box.insert(
+        tk.END,
+        "AI Assistant: " + response + "\n\n"
+    )
+
+    entry.delete(0, tk.END)
+window = tk.Tk()
+
+window.title("AI FAQ Assistant")
+window.geometry("600x500")
+
+title = tk.Label(
+    window,
+    text="AI FAQ ASSISTANT",
+    font=("Arial", 18, "bold")
+)
+
+title.pack(pady=10)
+
+chat_box = scrolledtext.ScrolledText(
+    window,
+    width=65,
+    height=20
+)
+
+chat_box.pack(padx=10, pady=10)
+
+entry = tk.Entry(
+    window,
+    width=50,
+    font=("Arial", 12)
+)
+
+entry.pack(side=tk.LEFT, padx=10)
+
+send_button = tk.Button(
+    window,
+    text="Send",
+    command=send_message
+)
+
+send_button.pack(side=tk.LEFT)
+
+window.mainloop()
